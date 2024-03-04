@@ -45,7 +45,7 @@ class BnsaveExporter extends Module
     {
         $export_directory = _PS_IMG_DIR_ . 'upload/bnsave-exports';
 
-        if (!mkdir($export_directory, 0755, true) && !is_dir($export_directory)) {
+        if (!file_exists($export_directory) && !mkdir($export_directory, 0755, true) && !is_dir($export_directory)) {
             return false;
         }
 
