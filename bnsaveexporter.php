@@ -100,10 +100,21 @@ final class bnsaveexporter extends Module
 
     private function configure()
     {
-        Configuration::updateValue('BNSAVEEXPORTER_SHOP_NAME', 'My Shop');
-        Configuration::updateValue('BNSAVEEXPORTER_CATEGORY_MAPPING', []);
-        Configuration::updateValue('BNSAVEEXPORTER_EXCLUDE_TAGS', '');
-        Configuration::updateValue('BNSAVEEXPORTER_USE_LANGUAGE_ISO', 'lt');
+        if (!Configuration::hasKey('BNSAVEEXPORTER_SHOP_NAME')) {
+            Configuration::updateValue('BNSAVEEXPORTER_SHOP_NAME', 'My Shop');
+        }
+
+        if (!Configuration::hasKey('BNSAVEEXPORTER_CATEGORY_MAPPING')) {
+            Configuration::updateValue('BNSAVEEXPORTER_CATEGORY_MAPPING', []);
+        }
+
+        if (!Configuration::hasKey('BNSAVEEXPORTER_EXCLUDE_TAGS')) {
+            Configuration::updateValue('BNSAVEEXPORTER_EXCLUDE_TAGS', 'pagrindinis,home');
+        }
+
+        if (!Configuration::hasKey('BNSAVEEXPORTER_USE_LANGUAGE_ISO')) {
+            Configuration::updateValue('BNSAVEEXPORTER_USE_LANGUAGE_ISO', 'lt');
+        }
 
         return true;
     }

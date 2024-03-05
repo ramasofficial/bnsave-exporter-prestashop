@@ -5,6 +5,7 @@ class BnsaveExporterValidationModuleFrontController  extends ModuleFrontControll
     public $auth = false;
     public $ajax;
     public $languageId = null;
+    public $categories = null;
 
     public function initContent()
     {
@@ -99,10 +100,10 @@ SQL;
                 'discount' => null,
                 'valid_from' => $validFrom,
                 'valid_until' => $validUntil,
-                'image' => $image,
+                'image' => $image !== '' ? $image : null,
                 'shop_link' => $link,
                 'promo_code' => null,
-                'tags' => [],
+                'tags' => $this->getTags($productObj),
                 'city_id' => null,
                 'external_id' => (int) $product['id'],
                 'quantity' => (int) $product['quantity'],
@@ -143,5 +144,65 @@ SQL;
         $this->languageId = $languageId;
 
         return $languageId;
+    }
+
+    private function getCategories()
+    {
+        if ($this->categories) {
+            return $this->categories;
+        }
+
+        $tablePrefix = _DB_PREFIX_;
+        $languageId = $this->getLanguageId();
+
+        $sql = <<<SQL
+            SELECT id_category as id, name
+            FROM  {$tablePrefix}category_lang
+            WHERE id_lang = "{$languageId}"
+            ORDER BY id_category ASC
+SQL;
+
+        $results = Db::getInstance()->executeS($sql);
+
+        if ($results === []) {
+            return [];
+        }
+
+        $categories = [];
+        foreach ($results as $category) {
+            $categories[$category['id']] = $category['name'];
+        }
+
+        $this->categories = $categories;
+
+        return $categories;
+    }
+
+    private function getTags(Product $productObj)
+    {
+        if ($productObj->getCategories() === []) {
+            return [];
+        }
+
+        $categories = $this->getCategories();
+
+        $tags = [];
+        foreach ($productObj->getCategories() as $category) {
+            $tags[] = $categories[$category];
+        }
+
+        $exclude = strtolower(Configuration::get('BNSAVEEXPORTER_EXCLUDE_TAGS'));
+        $exclude = str_replace(', ', ',', $exclude);
+        $excludeArray = explode(',', $exclude);
+
+        $tags = array_filter($tags, static function ($value) use ($excludeArray) {
+            return !in_array(strtolower($value), $excludeArray, true);
+        });
+
+        $tags = array_map(static function ($value) {
+            return mb_strtolower(str_replace([',', '/'], [' ir', ' '], $value));
+        }, $tags);
+
+        return array_values($tags);
     }
 }
