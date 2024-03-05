@@ -38,11 +38,11 @@ class BnsaveExporterValidationModuleFrontController  extends ModuleFrontControll
         $tablePrefix = _DB_PREFIX_;
 
         $sql = <<<SQL
-            SELECT p.id_product, pl.name, pl.description_short, sa.quantity
-            FROM  {$tablePrefix}product p
-            JOIN {$tablePrefix}specific_price sp ON p.id_product = sp.id_product
-            JOIN {$tablePrefix}stock_available sa ON p.id_product = sa.id_product
-            JOIN {$tablePrefix}product_lang pl ON p.id_product = pl.id_product AND pl.id_lang = 2
+            SELECT sp.id_specific_price as id, pl.name, pl.description_short as description, sa.quantity
+            FROM  {$tablePrefix}specific_price sp
+            JOIN {$tablePrefix}product p ON sp.id_product = p.id_product
+            JOIN {$tablePrefix}stock_available sa ON sp.id_product = sa.id_product AND sp.id_product_attribute = sa.id_product_attribute
+            JOIN {$tablePrefix}product_lang pl ON sp.id_product = pl.id_product AND pl.id_lang = 2
             WHERE p.active = 1
             AND sp.reduction > 0
             AND sa.quantity > 0
@@ -60,9 +60,11 @@ SQL;
     {
         $products = [];
         foreach ($results as $product) {
+            $description = trim(strip_tags($product['description'], '<br>'));
+
             $products[] = [
                 'name' => $product['name'],
-                'description' => strip_tags($product['description_short'], '<br>'),
+                'description' => $description !== null && $description !== '' ? $description : null,
                 'shop_name' => Configuration::get('BNSAVEEXPORTER_SHOP_NAME'),
                 'catalog_id' => '',
                 'price' => '',
@@ -75,8 +77,8 @@ SQL;
                 'promo_code' => '',
                 'tags' => [],
                 'city_id' => [],
-                'external_id' => $product['id_product'],
-                'quantity' => $product['quantity'],
+                'external_id' => (int) $product['id'],
+                'quantity' => (int) $product['quantity'],
             ];
         }
 
