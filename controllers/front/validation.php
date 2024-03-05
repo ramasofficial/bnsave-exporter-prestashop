@@ -94,7 +94,7 @@ SQL;
                 'name' => $product['name'],
                 'description' => $description !== null && $description !== '' ? $description : null,
                 'shop_name' => Configuration::get('BNSAVEEXPORTER_SHOP_NAME'),
-                'catalog_id' => $productObj->getDefaultCategory(),
+                'catalog_id' => $productObj->getDefaultCategory(), // TODO
                 'price' => $price,
                 'old_price' => $oldPrice,
                 'discount' => null,
