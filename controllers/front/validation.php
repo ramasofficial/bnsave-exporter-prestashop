@@ -72,11 +72,15 @@ SQL;
                 (new DateTime($product['to']))->format(bnsaveexporter::JSON_DATE_TIME_FORMAT) :
                 (new DateTime())->add(new DateInterval('P1D'))->format(bnsaveexporter::JSON_DATE_FORMAT) . ' ' . bnsaveexporter::CRONJOB_TIME;
 
-            $link = new Link();
+            if ($this->hasDate($product['from']) && !$this->hasDate($product['to'])) {
+                $validUntil = (new DateTime())->add(new DateInterval('P1D'))->format(bnsaveexporter::JSON_DATE_FORMAT) . ' ' . bnsaveexporter::CRONJOB_TIME;
+            }
+
             $cover = Product::getCover((int) $product['product_id']);
-            $image = $link->getImageLink($productObj->link_rewrite ?? $productObj->name, (int) $cover['id_image'], 'large_default');
             $price = $productObj->getPrice(true, $product['product_attribute_id'], 2);
             $oldPrice = $productObj->getPriceWithoutReduct(false, $product['product_attribute_id'], 2);
+            $image = Context::getContext()->link->getImageLink($productObj->link_rewrite ?? $productObj->name, (int) $cover['id_image'], 'large_default');
+            $link = Context::getContext()->link->getProductLink($product['product_id']);
 
             if ($price >= $oldPrice) {
                 continue;
@@ -93,7 +97,7 @@ SQL;
                 'valid_from' => $validFrom,
                 'valid_until' => $validUntil,
                 'image' => $image,
-                'shop_link' => $link->getProductLink($productObj), // TODO: take has to rewrite
+                'shop_link' => $link,
                 'promo_code' => null,
                 'tags' => [],
                 'city_id' => null,
