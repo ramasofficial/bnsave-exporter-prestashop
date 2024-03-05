@@ -6,6 +6,28 @@ if (!defined('_PS_VERSION_')) {
 
 final class bnsaveexporter extends Module
 {
+    const CATALOG_LIST = [
+        1 => 'Augintiniams',
+        2 => 'Drabužiai ir Avalynė',
+        3 => 'Elektronika ir Technika',
+        4 => 'Grožis ir Aksesuarai',
+        5 => 'Maistas ir Gėrimai',
+        6 => 'Namai ir Buitis',
+        7 => 'Pramogos ir Kelionės',
+        8 => 'Vaikams',
+        // 9 => 'Nuolaidų kodai',
+        10 => 'Kita',
+        11 => 'Sportas ir Sveikata',
+        12 => 'Suaugusiems (18+)',
+        // 13 => 'Paslaugos',
+        14 => 'Sodo prekės',
+    ];
+    const OTHER_CATALOG_ID = 10;
+    const JSON_DATE_FORMAT = 'Y-m-d';
+    const JSON_TIME_FORMAT = 'H:i:s';
+    const JSON_DATE_TIME_FORMAT = self::JSON_DATE_FORMAT . ' ' . self::JSON_TIME_FORMAT;
+    const START_OF_THE_DAY = '00:00:00';
+    const CRONJOB_TIME = '03:00:00';
     const EXPORT_DIRECTORY = _PS_IMG_DIR_ . 'upload/bnsave-exports';
     const EXPORT_FILE = 'discounts.json';
 
@@ -80,6 +102,7 @@ final class bnsaveexporter extends Module
         Configuration::updateValue('BNSAVEEXPORTER_SHOP_NAME', 'My Shop');
         Configuration::updateValue('BNSAVEEXPORTER_CATEGORY_MAPPING', []);
         Configuration::updateValue('BNSAVEEXPORTER_EXCLUDE_TAGS', '');
+        Configuration::updateValue('BNSAVEEXPORTER_USE_LANGUAGE_ISO', 'lt');
 
         return true;
     }
