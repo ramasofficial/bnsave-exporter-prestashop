@@ -4,6 +4,7 @@ class BnsaveExporterValidationModuleFrontController  extends ModuleFrontControll
 {
     public $auth = false;
     public $ajax;
+    public $languageId = null;
 
     public function initContent()
     {
@@ -36,14 +37,14 @@ class BnsaveExporterValidationModuleFrontController  extends ModuleFrontControll
     private function cron()
     {
         $tablePrefix = _DB_PREFIX_;
+        $languageId = $this->getLanguageId();
 
-        // TODO: deal with language = 2
         $sql = <<<SQL
             SELECT sp.id_specific_price as id, sp.id_product as product_id, sp.id_product_attribute as product_attribute_id, sp.from, sp.to, pl.name, pl.description_short as description, sa.quantity
             FROM  {$tablePrefix}specific_price sp
             JOIN {$tablePrefix}product p ON sp.id_product = p.id_product
             JOIN {$tablePrefix}stock_available sa ON sp.id_product = sa.id_product AND sp.id_product_attribute = sa.id_product_attribute
-            JOIN {$tablePrefix}product_lang pl ON sp.id_product = pl.id_product AND pl.id_lang = 2
+            JOIN {$tablePrefix}product_lang pl ON sp.id_product = pl.id_product AND pl.id_lang = {$languageId}
             WHERE p.active = 1
             AND sp.reduction > 0
             AND sa.quantity > 0
@@ -59,10 +60,12 @@ SQL;
 
     private function handleResults($results)
     {
+        $languageId = $this->getLanguageId();
+
         $products = [];
         foreach ($results as $product) {
             $description = trim(strip_tags($product['description'], '<br>'));
-            $productObj = new Product((int) $product['product_id'], true, 2);
+            $productObj = new Product((int) $product['product_id'], true, $languageId);
 
             $validFrom = $this->hasDate($product['from']) ?
                 (new DateTime($product['from']))->format(bnsaveexporter::JSON_DATE_TIME_FORMAT) :
@@ -77,8 +80,8 @@ SQL;
             }
 
             $cover = Product::getCover((int) $product['product_id']);
-            $price = $productObj->getPrice(true, $product['product_attribute_id'], 2);
-            $oldPrice = $productObj->getPriceWithoutReduct(false, $product['product_attribute_id'], 2);
+            $price = $productObj->getPrice(true, $product['product_attribute_id'], bnsaveexporter::DECIMALS);
+            $oldPrice = $productObj->getPriceWithoutReduct(false, $product['product_attribute_id'], bnsaveexporter::DECIMALS);
             $image = Context::getContext()->link->getImageLink($productObj->link_rewrite ?? $productObj->name, (int) $cover['id_image'], 'large_default');
             $link = Context::getContext()->link->getProductLink($product['product_id']);
 
@@ -117,5 +120,28 @@ SQL;
     private function hasDate(string $date)
     {
         return $date !== '0000-00-00 00:00:00';
+    }
+
+    private function getLanguageId()
+    {
+        if ($this->languageId) {
+            return (int) $this->languageId;
+        }
+
+        $tablePrefix = _DB_PREFIX_;
+        $isoCode = Configuration::get('BNSAVEEXPORTER_USE_LANGUAGE_ISO');
+
+        $sql = <<<SQL
+            SELECT id_lang as id
+            FROM  {$tablePrefix}lang
+            WHERE iso_code = "{$isoCode}"
+            ORDER BY id DESC LIMIT 1
+SQL;
+
+        $results = Db::getInstance()->executeS($sql);
+        $languageId = (int) $results[0]['id'];
+        $this->languageId = $languageId;
+
+        return $languageId;
     }
 }

@@ -30,6 +30,7 @@ final class bnsaveexporter extends Module
     const CRONJOB_TIME = '03:00:00';
     const EXPORT_DIRECTORY = _PS_IMG_DIR_ . 'upload/bnsave-exports';
     const EXPORT_FILE = 'discounts.json';
+    const DECIMALS = 2;
 
     public function __construct()
     {
