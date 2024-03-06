@@ -85,13 +85,14 @@ SQL;
             $oldPrice = $productObj->getPriceWithoutReduct(false, $product['product_attribute_id'], bnsaveexporter::DECIMALS);
             $image = Context::getContext()->link->getImageLink($productObj->link_rewrite ?? $productObj->name, (int) $cover['id_image'], 'large_default');
             $link = Context::getContext()->link->getProductLink($product['product_id']);
+            $name = $this->addAttributes($product['name'], $productObj, $product);
 
             if ($price >= $oldPrice) {
                 continue;
             }
 
             $products[] = [
-                'name' => $product['name'],
+                'name' => $name,
                 'description' => $description !== null && $description !== '' ? $description : null,
                 'shop_name' => Configuration::get('BNSAVEEXPORTER_SHOP_NAME'),
                 'catalog_id' => $productObj->getDefaultCategory(), // TODO
@@ -212,5 +213,18 @@ SQL;
         }, $tags);
 
         return array_values($tags);
+    }
+
+    private function addAttributes($name, $productObj, $product)
+    {
+        $attributes = $productObj->getAttributeCombinationsById($product['product_attribute_id'], $this->getLanguageId());
+
+        foreach ($attributes as $attribute) {
+            if ($attribute['group_name'] !== '' && $attribute['attribute_name']) {
+                $name .= sprintf(', %s: %s', strtolower($attribute['group_name']), strtolower($attribute['attribute_name']));
+            }
+        }
+
+        return $name;
     }
 }
