@@ -53,10 +53,10 @@ SQL;
 
         $results = Db::getInstance()->executeS($sql);
 
-        $this->handleResults($results);
+        $discountsCount = $this->handleResults($results);
 
         header('Content-Type: application/json');
-        echo json_encode($results);
+        echo json_encode(['status' => 'success', 'exported' => $discountsCount]);
     }
 
     private function handleResults($results)
@@ -111,11 +111,19 @@ SQL;
         }
 
         $this->writeToFile($products);
+
+        return count($products) ?? 0;
     }
 
     private function writeToFile(array $products)
     {
-        file_put_contents(bnsaveexporter::EXPORT_DIRECTORY . '/' . bnsaveexporter::EXPORT_FILE, json_encode($products));
+        $data = [
+            'discounts' => $products,
+            'next_page_url' => null,
+            'generated_at' => (new DateTime())->format(bnsaveexporter::JSON_DATE_TIME_FORMAT),
+        ];
+
+        file_put_contents(bnsaveexporter::EXPORT_DIRECTORY . '/' . bnsaveexporter::EXPORT_FILE, json_encode($data));
     }
 
     private function hasDate(string $date)
