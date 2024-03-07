@@ -93,7 +93,7 @@ SQL;
                 'name' => $name,
                 'description' => $description !== null && $description !== '' ? $description : null,
                 'shop_name' => Configuration::get('BNSAVEEXPORTER_SHOP_NAME'),
-                'catalog_id' => $productObj->getDefaultCategory(), // TODO
+                'catalog_id' => $this->getMappedCatalogId($productObj),
                 'price' => $price,
                 'old_price' => $oldPrice,
                 'discount' => null,
@@ -169,5 +169,20 @@ SQL;
         }
 
         return $name;
+    }
+
+    /**
+     * @param Product $productObj
+     * @returns int
+     */
+    private function getMappedCatalogId($productObj)
+    {
+        $configuration = json_decode(Configuration::get('BNSAVEEXPORTER_CATEGORY_MAPPING'), true);
+
+        if (!isset($configuration[$productObj->getDefaultCategory()])) {
+            return bnsaveexporter::DONT_IMPORT_CATALOG_ID;
+        }
+
+        return (int) $configuration[$productObj->getDefaultCategory()];
     }
 }

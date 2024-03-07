@@ -23,7 +23,7 @@ final class bnsaveexporter extends Module
         // 13 => 'Paslaugos',
         14 => 'Sodo prekės',
     ];
-    const OTHER_CATALOG_ID = 10;
+    const DONT_IMPORT_CATALOG_ID = 100;
     const JSON_DATE_FORMAT = 'Y-m-d';
     const JSON_TIME_FORMAT = 'H:i:s';
     const JSON_DATE_TIME_FORMAT = self::JSON_DATE_FORMAT . ' ' . self::JSON_TIME_FORMAT;
