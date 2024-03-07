@@ -33,8 +33,8 @@ final class bnsaveexporter extends Module
     const EXPORT_FILE = 'discounts.json';
     const DECIMALS = 2;
 
-    public $languageId = null;
-    public $categories = null;
+    public static $languageId = null;
+    public static $categories = null;
 
     public function __construct()
     {
@@ -210,7 +210,7 @@ final class bnsaveexporter extends Module
             ],
         ];
 
-        $categories = $this->getCategories();
+        $categories = self::getCategories();
         $catalogOptions = $this->getCatalogOptions();
         foreach ($categories as $id => $category) {
             $form['form']['input'][] = [
@@ -242,10 +242,10 @@ final class bnsaveexporter extends Module
         return $helper->generateForm([$form]);
     }
 
-    private function getLanguageId()
+    public static function getLanguageId()
     {
-        if ($this->languageId) {
-            return (int) $this->languageId;
+        if (self::$languageId) {
+            return (int) self::$languageId;
         }
 
         $tablePrefix = _DB_PREFIX_;
@@ -260,19 +260,19 @@ SQL;
 
         $results = Db::getInstance()->executeS($sql);
         $languageId = (int) $results[0]['id'];
-        $this->languageId = $languageId;
+        self::$languageId = $languageId;
 
         return $languageId;
     }
 
-    private function getCategories()
+    public static function getCategories()
     {
-        if ($this->categories) {
-            return $this->categories;
+        if (self::$categories) {
+            return self::$categories;
         }
 
         $tablePrefix = _DB_PREFIX_;
-        $languageId = $this->getLanguageId();
+        $languageId = self::getLanguageId();
 
         $sql = <<<SQL
             SELECT id_category as id, name
@@ -292,7 +292,7 @@ SQL;
             $categories[$category['id']] = $category['name'];
         }
 
-        $this->categories = $categories;
+        self::$categories = $categories;
 
         return $categories;
     }

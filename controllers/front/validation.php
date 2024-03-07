@@ -4,8 +4,6 @@ class BnsaveExporterValidationModuleFrontController  extends ModuleFrontControll
 {
     public $auth = false;
     public $ajax;
-    public $languageId = null;
-    public $categories = null;
 
     public function initContent()
     {
@@ -38,7 +36,7 @@ class BnsaveExporterValidationModuleFrontController  extends ModuleFrontControll
     private function cron()
     {
         $tablePrefix = _DB_PREFIX_;
-        $languageId = $this->getLanguageId();
+        $languageId = bnsaveexporter::getLanguageId();
 
         $sql = <<<SQL
             SELECT sp.id_specific_price as id, sp.id_product as product_id, sp.id_product_attribute as product_attribute_id, sp.from, sp.to, pl.name, pl.description_short as description, sa.quantity
@@ -61,7 +59,7 @@ SQL;
 
     private function handleResults($results)
     {
-        $languageId = $this->getLanguageId();
+        $languageId = bnsaveexporter::getLanguageId();
 
         $products = [];
         foreach ($results as $product) {
@@ -132,68 +130,13 @@ SQL;
         return $date !== '0000-00-00 00:00:00';
     }
 
-    private function getLanguageId()
-    {
-        if ($this->languageId) {
-            return (int) $this->languageId;
-        }
-
-        $tablePrefix = _DB_PREFIX_;
-        $isoCode = Configuration::get('BNSAVEEXPORTER_USE_LANGUAGE_ISO');
-
-        $sql = <<<SQL
-            SELECT id_lang as id
-            FROM  {$tablePrefix}lang
-            WHERE iso_code = "{$isoCode}"
-            ORDER BY id DESC LIMIT 1
-SQL;
-
-        $results = Db::getInstance()->executeS($sql);
-        $languageId = (int) $results[0]['id'];
-        $this->languageId = $languageId;
-
-        return $languageId;
-    }
-
-    private function getCategories()
-    {
-        if ($this->categories) {
-            return $this->categories;
-        }
-
-        $tablePrefix = _DB_PREFIX_;
-        $languageId = $this->getLanguageId();
-
-        $sql = <<<SQL
-            SELECT id_category as id, name
-            FROM  {$tablePrefix}category_lang
-            WHERE id_lang = "{$languageId}"
-            ORDER BY id_category ASC
-SQL;
-
-        $results = Db::getInstance()->executeS($sql);
-
-        if ($results === []) {
-            return [];
-        }
-
-        $categories = [];
-        foreach ($results as $category) {
-            $categories[$category['id']] = $category['name'];
-        }
-
-        $this->categories = $categories;
-
-        return $categories;
-    }
-
     private function getTags(Product $productObj)
     {
         if ($productObj->getCategories() === []) {
             return [];
         }
 
-        $categories = $this->getCategories();
+        $categories = bnsaveexporter::getCategories();
 
         $tags = [];
         foreach ($productObj->getCategories() as $category) {
@@ -217,7 +160,7 @@ SQL;
 
     private function addAttributes($name, $productObj, $product)
     {
-        $attributes = $productObj->getAttributeCombinationsById($product['product_attribute_id'], $this->getLanguageId());
+        $attributes = $productObj->getAttributeCombinationsById($product['product_attribute_id'], bnsaveexporter::getLanguageId());
 
         foreach ($attributes as $attribute) {
             if ($attribute['group_name'] !== '' && $attribute['attribute_name']) {
