@@ -70,6 +70,11 @@ SQL;
         foreach ($results as $product) {
             $description = trim(strip_tags($product['description'], '<br>'));
             $productObj = new Product((int) $product['product_id'], true, $languageId);
+            $catalogId = $this->getMappedCatalogId($productObj);
+
+            if ($catalogId === bnsaveexporter::DONT_IMPORT_CATALOG_ID) {
+                continue;
+            }
 
             $validFrom = $this->hasDate($product['from']) ?
                 (new DateTime($product['from']))->format(bnsaveexporter::JSON_DATE_TIME_FORMAT) :
@@ -98,7 +103,7 @@ SQL;
                 'name' => $name,
                 'description' => $description !== null && $description !== '' ? $description : null,
                 'shop_name' => Configuration::get('BNSAVEEXPORTER_SHOP_NAME'),
-                'catalog_id' => $this->getMappedCatalogId($productObj),
+                'catalog_id' => $catalogId,
                 'price' => $price,
                 'old_price' => $oldPrice,
                 'discount' => null,
