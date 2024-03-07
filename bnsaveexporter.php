@@ -7,6 +7,7 @@ if (!defined('_PS_VERSION_')) {
 final class bnsaveexporter extends Module
 {
     const CATALOG_LIST = [
+        100 => 'Neimportuoti',
         1 => 'Augintiniams',
         2 => 'Drabužiai ir Avalynė',
         3 => 'Elektronika ir Technika',
@@ -31,6 +32,9 @@ final class bnsaveexporter extends Module
     const EXPORT_DIRECTORY = _PS_IMG_DIR_ . 'upload/bnsave-exports';
     const EXPORT_FILE = 'discounts.json';
     const DECIMALS = 2;
+
+    public $languageId = null;
+    public $categories = null;
 
     public function __construct()
     {
@@ -105,7 +109,7 @@ final class bnsaveexporter extends Module
         }
 
         if (!Configuration::hasKey('BNSAVEEXPORTER_CATEGORY_MAPPING')) {
-            Configuration::updateValue('BNSAVEEXPORTER_CATEGORY_MAPPING', []);
+            Configuration::updateValue('BNSAVEEXPORTER_CATEGORY_MAPPING', json_encode([]));
         }
 
         if (!Configuration::hasKey('BNSAVEEXPORTER_EXCLUDE_TAGS')) {
@@ -117,5 +121,192 @@ final class bnsaveexporter extends Module
         }
 
         return true;
+    }
+
+    public function getContent()
+    {
+        $output = '';
+
+        if (Tools::isSubmit('submitForm1')) {
+            Configuration::updateValue('BNSAVEEXPORTER_SHOP_NAME', (string) Tools::getValue('BNSAVEEXPORTER_SHOP_NAME'));
+            Configuration::updateValue('BNSAVEEXPORTER_USE_LANGUAGE_ISO', (string) Tools::getValue('BNSAVEEXPORTER_USE_LANGUAGE_ISO'));
+            Configuration::updateValue('BNSAVEEXPORTER_EXCLUDE_TAGS', (string) Tools::getValue('BNSAVEEXPORTER_EXCLUDE_TAGS'));
+
+            $output = $this->displayConfirmation($this->l('Konfiguracija atnaujinta'));
+        }
+
+        if (Tools::isSubmit('submitForm2')) {
+            Configuration::updateValue('BNSAVEEXPORTER_CATEGORY_MAPPING', json_encode(Tools::getValue('BNSAVEEXPORTER_CATEGORY_MAPPING')));
+
+            $output = $this->displayConfirmation($this->l('Kategorijų susiejimas atnaujintas'));
+        }
+
+        return $output . $this->renderForm1() . $this->renderForm2();
+    }
+
+    public function renderForm1()
+    {
+        $form = [
+            'form' => [
+                'legend' => [
+                    'title' => $this->l('Nustatymai'),
+                ],
+                'input' => [
+                    [
+                        'type' => 'text',
+                        'label' => $this->l('Parduotuvės pavadinimas, kuris bus matomas Bnsave'),
+                        'name' => 'BNSAVEEXPORTER_SHOP_NAME',
+                        'size' => 150,
+                        'required' => true,
+                    ],
+                    [
+                        'type' => 'text',
+                        'label' => $this->l('Kalbos ISO kodas iš kurios traukti informaciją, pvz.: lt arba en'),
+                        'name' => 'BNSAVEEXPORTER_USE_LANGUAGE_ISO',
+                        'size' => 8,
+                        'required' => true,
+                    ],
+                    [
+                        'type' => 'text',
+                        'label' => $this->l('Tagai per kablelį kurių nenorite siųsti į Bnsave (nedėkite tarpo po kablelio, siūlome įtraukti: pagrindinis,home)'),
+                        'name' => 'BNSAVEEXPORTER_EXCLUDE_TAGS',
+                        'size' => 1000,
+                        'required' => false,
+                    ],
+                ],
+                'submit' => [
+                    'title' => $this->l('Išsaugoti'),
+                    'class' => 'btn btn-default pull-right',
+                ],
+            ],
+        ];
+
+        $helper = new HelperForm();
+        $helper->table = $this->table;
+        $helper->name_controller = $this->name;
+        $helper->token = Tools::getAdminTokenLite('AdminModules');
+        $helper->currentIndex = AdminController::$currentIndex . '&' . http_build_query(['configure' => $this->name]);
+        $helper->submit_action = 'submitForm1';
+        $helper->default_form_language = (int) Configuration::get('PS_LANG_DEFAULT');
+        $helper->fields_value['BNSAVEEXPORTER_SHOP_NAME'] = Configuration::get('BNSAVEEXPORTER_SHOP_NAME');
+        $helper->fields_value['BNSAVEEXPORTER_USE_LANGUAGE_ISO'] = Configuration::get('BNSAVEEXPORTER_USE_LANGUAGE_ISO');
+        $helper->fields_value['BNSAVEEXPORTER_EXCLUDE_TAGS'] = Configuration::get('BNSAVEEXPORTER_EXCLUDE_TAGS');
+
+        return $helper->generateForm([$form]);
+    }
+
+    public function renderForm2()
+    {
+        $form = [
+            'form' => [
+                'legend' => [
+                    'title' => $this->l('Kategorijų susiejimas'),
+                ],
+                'input' => [],
+                'submit' => [
+                    'title' => $this->l('Išsaugoti'),
+                    'class' => 'btn btn-default pull-right',
+                ],
+            ],
+        ];
+
+        $categories = $this->getCategories();
+        $catalogOptions = $this->getCatalogOptions();
+        foreach ($categories as $id => $category) {
+            $form['form']['input'][] = [
+                'type' => 'select',
+                'label' => 'Kategorija: <strong>' . $category . '</strong>',
+                'name' => 'BNSAVEEXPORTER_CATEGORY_MAPPING[' . $id . ']',
+                'required' => false,
+                'options' => [
+                    'query' => $catalogOptions,
+                    'id' => 'id',
+                    'name' => 'name'
+                ],
+            ];
+        }
+
+        $helper = new HelperForm();
+        $helper->table = $this->table;
+        $helper->name_controller = $this->name;
+        $helper->token = Tools::getAdminTokenLite('AdminModules');
+        $helper->currentIndex = AdminController::$currentIndex . '&' . http_build_query(['configure' => $this->name]);
+        $helper->submit_action = 'submitForm2';
+        $helper->default_form_language = (int) Configuration::get('PS_LANG_DEFAULT');
+
+        $catalogMappingConfiguration = json_decode(Configuration::get('BNSAVEEXPORTER_CATEGORY_MAPPING'), true);
+        foreach ($catalogMappingConfiguration as $categoryId => $catalogId) {
+            $helper->fields_value['BNSAVEEXPORTER_CATEGORY_MAPPING[' . $categoryId . ']'] = $catalogId;
+        }
+
+        return $helper->generateForm([$form]);
+    }
+
+    private function getLanguageId()
+    {
+        if ($this->languageId) {
+            return (int) $this->languageId;
+        }
+
+        $tablePrefix = _DB_PREFIX_;
+        $isoCode = Configuration::get('BNSAVEEXPORTER_USE_LANGUAGE_ISO');
+
+        $sql = <<<SQL
+            SELECT id_lang as id
+            FROM  {$tablePrefix}lang
+            WHERE iso_code = "{$isoCode}"
+            ORDER BY id DESC LIMIT 1
+SQL;
+
+        $results = Db::getInstance()->executeS($sql);
+        $languageId = (int) $results[0]['id'];
+        $this->languageId = $languageId;
+
+        return $languageId;
+    }
+
+    private function getCategories()
+    {
+        if ($this->categories) {
+            return $this->categories;
+        }
+
+        $tablePrefix = _DB_PREFIX_;
+        $languageId = $this->getLanguageId();
+
+        $sql = <<<SQL
+            SELECT id_category as id, name
+            FROM  {$tablePrefix}category_lang
+            WHERE id_lang = "{$languageId}"
+            ORDER BY id_category ASC
+SQL;
+
+        $results = Db::getInstance()->executeS($sql);
+
+        if ($results === []) {
+            return [];
+        }
+
+        $categories = [];
+        foreach ($results as $category) {
+            $categories[$category['id']] = $category['name'];
+        }
+
+        $this->categories = $categories;
+
+        return $categories;
+    }
+
+    private function getCatalogOptions()
+    {
+        $options = [];
+        foreach (self::CATALOG_LIST as $id => $name) {
+            $options[] = [
+                'id' => $id,
+                'name' => $name,
+            ];
+        }
+
+        return $options;
     }
 }
