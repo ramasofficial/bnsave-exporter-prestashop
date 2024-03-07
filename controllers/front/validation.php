@@ -57,6 +57,11 @@ SQL;
         echo json_encode(['status' => 'success', 'exported' => $discountsCount]);
     }
 
+    /**
+     * @param array $results
+     * @return int
+     * @throws PrestaShopException
+     */
     private function handleResults($results)
     {
         $languageId = bnsaveexporter::getLanguageId();
@@ -114,7 +119,10 @@ SQL;
         return count($products) ?? 0;
     }
 
-    private function writeToFile(array $products)
+    /**
+     * @param array $products
+     */
+    private function writeToFile($products)
     {
         $data = [
             'discounts' => $products,
@@ -125,12 +133,20 @@ SQL;
         file_put_contents(bnsaveexporter::EXPORT_DIRECTORY . '/' . bnsaveexporter::EXPORT_FILE, json_encode($data));
     }
 
-    private function hasDate(string $date)
+    /**
+     * @param string $date
+     * @return bool
+     */
+    private function hasDate($date)
     {
         return $date !== '0000-00-00 00:00:00';
     }
 
-    private function getTags(Product $productObj)
+    /**
+     * @param Product $productObj
+     * @return array
+     */
+    private function getTags($productObj)
     {
         if ($productObj->getCategories() === []) {
             return [];
@@ -158,6 +174,12 @@ SQL;
         return array_values($tags);
     }
 
+    /**
+     * @param string $name
+     * @param Product $productObj
+     * @param array $product
+     * @return string
+     */
     private function addAttributes($name, $productObj, $product)
     {
         $attributes = $productObj->getAttributeCombinationsById($product['product_attribute_id'], bnsaveexporter::getLanguageId());
@@ -173,7 +195,7 @@ SQL;
 
     /**
      * @param Product $productObj
-     * @returns int
+     * @return int
      */
     private function getMappedCatalogId($productObj)
     {

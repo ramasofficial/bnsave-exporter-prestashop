@@ -61,16 +61,25 @@ final class bnsaveexporter extends Module
         }
     }
 
+    /**
+     * @return bool
+     */
     public function install()
     {
         return parent::install() && $this->createAssets() && $this->configure();
     }
 
+    /**
+     * @return bool
+     */
     public function uninstall()
     {
         return parent::uninstall() && $this->removeAssets();
     }
 
+    /**
+     * @return bool
+     */
     private function createAssets()
     {
         if (!file_exists(self::EXPORT_DIRECTORY) && !mkdir(self::EXPORT_DIRECTORY, 0755, true) && !is_dir(self::EXPORT_DIRECTORY)) {
@@ -86,6 +95,9 @@ final class bnsaveexporter extends Module
         return true;
     }
 
+    /**
+     * @return bool
+     */
     private function removeAssets()
     {
         try {
@@ -97,11 +109,17 @@ final class bnsaveexporter extends Module
         return true;
     }
 
+    /**
+     * @return string
+     */
     private function getExportFilePath()
     {
         return self::EXPORT_DIRECTORY . '/' . self::EXPORT_FILE;
     }
 
+    /**
+     * @return bool
+     */
     private function configure()
     {
         if (!Configuration::hasKey('BNSAVEEXPORTER_SHOP_NAME')) {
@@ -123,6 +141,10 @@ final class bnsaveexporter extends Module
         return true;
     }
 
+    /**
+     * @return string
+     * @throws PrestaShopDatabaseException
+     */
     public function getContent()
     {
         $output = '';
@@ -144,6 +166,9 @@ final class bnsaveexporter extends Module
         return $output . $this->renderForm1() . $this->renderForm2();
     }
 
+    /**
+     * @return string
+     */
     public function renderForm1()
     {
         $form = [
@@ -195,6 +220,10 @@ final class bnsaveexporter extends Module
         return $helper->generateForm([$form]);
     }
 
+    /**
+     * @return string
+     * @throws PrestaShopDatabaseException
+     */
     public function renderForm2()
     {
         $form = [
@@ -242,6 +271,10 @@ final class bnsaveexporter extends Module
         return $helper->generateForm([$form]);
     }
 
+    /**
+     * @return int
+     * @throws PrestaShopDatabaseException
+     */
     public static function getLanguageId()
     {
         if (self::$languageId) {
@@ -265,6 +298,10 @@ SQL;
         return $languageId;
     }
 
+    /**
+     * @return array
+     * @throws PrestaShopDatabaseException
+     */
     public static function getCategories()
     {
         if (self::$categories) {
@@ -297,6 +334,9 @@ SQL;
         return $categories;
     }
 
+    /**
+     * @return array
+     */
     private function getCatalogOptions()
     {
         $options = [];
