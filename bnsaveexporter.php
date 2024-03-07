@@ -51,25 +51,25 @@ final class bnsaveexporter extends Module
 
         parent::__construct();
 
-        $this->displayName = $this->trans('Bnsave Exporter', [], 'Modules.Bnsaveexporter.Admin');
-        $this->description = $this->trans('Exports products with discounts from Woocommerce to Bnsave.', [], 'Modules.Bnsaveexporter.Admin');
+        $this->displayName = $this->l('Bnsave Exporter');
+        $this->description = $this->l('Exports products with discounts from Woocommerce to Bnsave.');
 
-        $this->confirmUninstall = $this->trans('Are you sure you want to uninstall?', [], 'Modules.Bnsaveexporter.Admin');
+        $this->confirmUninstall = $this->l('Are you sure you want to uninstall?');
 
         if (!Configuration::get('BNSAVEEXPORTER_SHOP_NAME')) {
-            $this->warning = $this->trans('Nenurodytas parduotuvės pavadinimas.', [], 'Modules.Mymodule.Admin');
+            $this->warning = $this->l('Nenurodytas parduotuvės pavadinimas.');
         }
 
         if (!Configuration::get('BNSAVEEXPORTER_USE_LANGUAGE_ISO')) {
-            $this->warning = $this->trans('Nenurodytas kalbos ISO kodas.', [], 'Modules.Mymodule.Admin');
+            $this->warning = $this->l('Nenurodytas kalbos ISO kodas.');
         }
 
         if (!Configuration::get('BNSAVEEXPORTER_EXCLUDE_TAGS')) {
-            $this->warning = $this->trans('Nenurodyti tagai kurių nereikia siųsti į Bnsave.', [], 'Modules.Mymodule.Admin');
+            $this->warning = $this->l('Nenurodyti tagai kurių nereikia siųsti į Bnsave.');
         }
 
         if (!Configuration::get('BNSAVEEXPORTER_CATEGORY_MAPPING')) {
-            $this->warning = $this->trans('Nenurodytas kategorijų susiejimas.', [], 'Modules.Mymodule.Admin');
+            $this->warning = $this->l('Nenurodytas kategorijų susiejimas.');
         }
     }
 

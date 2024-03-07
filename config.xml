@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <module>
-    <name>bnsaveexporter</name>
-    <displayName><![CDATA[Bnsave Exporter]]></displayName>
-    <version><![CDATA[1.0.0]]></version>
-    <description><![CDATA[Exports products with discounts from Woocommerce to Bnsave.]]></description>
-    <author><![CDATA[Bnsave (www.bnsave.lt)]]></author>
-    <tab><![CDATA[migration_tools]]></tab>
-	<confirmUninstall><![CDATA[Are you sure you want to uninstall?]]></confirmUninstall>
-    <is_configurable>0</is_configurable>
-    <need_instance>1</need_instance>
+	<name>bnsaveexporter</name>
+	<displayName><![CDATA[Bnsave Exporter]]></displayName>
+	<version><![CDATA[1.0.0]]></version>
+	<description><![CDATA[Exports products with discounts from Woocommerce to Bnsave.]]></description>
+	<author><![CDATA[Bnsave (www.bnsave.lt)]]></author>
+	<tab><![CDATA[migration_tools]]></tab>
+	<is_configurable>1</is_configurable>
+	<need_instance>1</need_instance>
+	<limited_countries></limited_countries>
 </module>
