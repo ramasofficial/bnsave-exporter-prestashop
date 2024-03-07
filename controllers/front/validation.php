@@ -114,6 +114,7 @@ SQL;
                 'promo_code' => null,
                 'tags' => $this->getTags($productObj),
                 'city_id' => null,
+                // Better to give specific price external id in order to avoid deduplication per product attribute
                 'external_id' => (int) $product['id'],
                 'quantity' => (int) $product['quantity'],
             ];
