@@ -94,7 +94,8 @@ SQL;
             $cover = Product::getCover((int) $product['product_id']);
             $price = $productObj->getPrice(true, $product['product_attribute_id'], bnsaveexporter::DECIMALS);
             $oldPrice = $productObj->getPriceWithoutReduct(false, $product['product_attribute_id'], bnsaveexporter::DECIMALS);
-            $image = Context::getContext()->link->getImageLink($productObj->link_rewrite ?? $productObj->name, (int) $cover['id_image'], 'large_default');
+            $linkRewrite = $productObj->link_rewrite ? $productObj->link_rewrite : $productObj->name;
+            $image = Context::getContext()->link->getImageLink($linkRewrite, (int) $cover['id_image'], 'large_default');
             $link = Context::getContext()->link->getProductLink($product['product_id']);
             $name = $this->addAttributes($product['name'], $productObj, $product);
 
@@ -125,7 +126,7 @@ SQL;
 
         $this->writeToFile($products);
 
-        return count($products) ?? 0;
+        return count($products);
     }
 
     /**
