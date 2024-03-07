@@ -56,8 +56,20 @@ final class bnsaveexporter extends Module
 
         $this->confirmUninstall = $this->trans('Are you sure you want to uninstall?', [], 'Modules.Bnsaveexporter.Admin');
 
-        if (!Configuration::get('BNSAVEEXPORTER_NAME')) {
-            $this->warning = $this->trans('No name provided', [], 'Modules.Mymodule.Admin');
+        if (!Configuration::get('BNSAVEEXPORTER_SHOP_NAME')) {
+            $this->warning = $this->trans('Nenurodytas parduotuvės pavadinimas.', [], 'Modules.Mymodule.Admin');
+        }
+
+        if (!Configuration::get('BNSAVEEXPORTER_USE_LANGUAGE_ISO')) {
+            $this->warning = $this->trans('Nenurodytas kalbos ISO kodas.', [], 'Modules.Mymodule.Admin');
+        }
+
+        if (!Configuration::get('BNSAVEEXPORTER_EXCLUDE_TAGS')) {
+            $this->warning = $this->trans('Nenurodyti tagai kurių nereikia siųsti į Bnsave.', [], 'Modules.Mymodule.Admin');
+        }
+
+        if (!Configuration::get('BNSAVEEXPORTER_CATEGORY_MAPPING')) {
+            $this->warning = $this->trans('Nenurodytas kategorijų susiejimas.', [], 'Modules.Mymodule.Admin');
         }
     }
 
